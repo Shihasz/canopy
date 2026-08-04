@@ -1,0 +1,29 @@
+# Go build artifacts
+/bin/
+/dist/
+*.test
+*.out
+
+# Go workspace files (local multi-module dev, not used here but common to ignore)
+go.work
+go.work.sum
+
+# Terraform (used in later commits)
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash.*.log
+
+# Local env / secrets
+.env
+*.pem
+*.key
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
