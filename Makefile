@@ -1,4 +1,4 @@
-.PHONY: build test lint vet fmt run clean
+.PHONY: build test lint vet fmt run clean tidy
 
 BINARY := bin/canopy
 
@@ -16,6 +16,9 @@ vet:
 
 fmt:
 	gofmt -l .
+
+tidy:
+	go mod tidy
 
 lint:
 	golangci-lint run ./...
