@@ -49,6 +49,7 @@ type Config struct {
 		MinSampleCount    int64         `yaml:"minSampleCount"`
 		Interval          time.Duration `yaml:"interval"`
 		MaxInconclusive   int           `yaml:"maxInconclusive"`
+		WarmupDelay       time.Duration `yaml:"warmupDelay"`
 	} `yaml:"analysis"`
 }
 
@@ -116,6 +117,9 @@ func (c *Config) Validate() error {
 	}
 	if c.Analysis.MaxInconclusive == 0 {
 		c.Analysis.MaxInconclusive = 3
+	}
+	if c.Analysis.WarmupDelay == 0 {
+		c.Analysis.WarmupDelay = 10 * time.Second
 	}
 	return nil
 }

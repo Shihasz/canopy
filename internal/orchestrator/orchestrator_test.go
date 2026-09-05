@@ -305,3 +305,45 @@ func TestOrchestrator_Run_ContextCancelledDuringAnalysisWait(t *testing.T) {
 		t.Fatalf("Run error = %v, want context.DeadlineExceeded", err)
 	}
 }
+
+func TestOrchestrator_Run_WarmupDelayIsRespected(t *testing.T) {
+	canaryExec, lbExec := &fakeExecutor{}, &fakeExecutor{}
+	metrics := &fakeMetricsProvider{
+		stableSnaps: []analysis.MetricSnapshot{healthySnapshot},
+		canarySnaps: []analysis.MetricSnapshot{healthySnapshot},
+	}
+	canaryCfg, priorCfg := testUnitConfigs()
+	r := rollout.NewRollout("checkout-svc", "v2.0.0", "v1.9.0")
+
+	o, err := NewOrchestrator(Config{
+		Rollout:                 r,
+		CanaryDeployer:          deploy.NewDeployer(canaryExec),
+		CanaryUnitConfig:        canaryCfg,
+		PriorUnitConfig:         priorCfg,
+		LB:                      loadbalancer.NewController(lbExec, "/etc/nginx/conf.d/canopy-upstream.conf"),
+		Upstream:                testUpstream(),
+		Analyzer:                analysis.NewAnalyzer(testThresholds()),
+		Metrics:                 metrics,
+		AnalysisInterval:        time.Millisecond,
+		MaxInconclusiveAttempts: 3,
+		WarmupDelay:             100 * time.Millisecond,
+	})
+	if err != nil {
+		t.Fatalf("NewOrchestrator: %v", err)
+	}
+
+	start := time.Now()
+	result, err := o.Run(context.Background())
+	elapsed := time.Since(start)
+	if err != nil {
+		t.Fatalf("Run: %v", err)
+	}
+	if result.FinalState != rollout.StatePromoted {
+		t.Fatalf("FinalState = %s, want Promoted", result.FinalState)
+	}
+	// 4 traffic steps, each preceded by a 100ms warmup wait.
+	minExpected := 4 * 100 * time.Millisecond
+	if elapsed < minExpected {
+		t.Errorf("elapsed = %v, want at least %v (warmup delay should apply before each step's analysis)", elapsed, minExpected)
+	}
+}

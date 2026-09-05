@@ -34,6 +34,15 @@ type Config struct {
 	// verdict comes back Inconclusive. Defaults to 5s if unset.
 	AnalysisInterval time.Duration
 
+	// WarmupDelay is how long to wait after shifting traffic to a new
+	// percentage before running the first analysis pass at that step.
+	// This gives the metrics backend time to scrape fresh data reflecting
+	// traffic under the new split, rather than evaluating stale samples
+	// left over from before the shift. Defaults to 0 (no wait) — safe for
+	// tests using fakes with instantaneous metrics, but real deployments
+	// should set this to at least one scrape interval.
+	WarmupDelay time.Duration
+
 	// MaxInconclusiveAttempts is how many times to retry an Inconclusive
 	// verdict before failing safe (treating it as a Fail). Defaults to 3.
 	MaxInconclusiveAttempts int
@@ -108,6 +117,10 @@ func (o *Orchestrator) Run(ctx context.Context) (*Result, error) {
 			return nil, fmt.Errorf("orchestrator: shift traffic to %d%%: %w", step, err)
 		}
 		r.TrafficPct = step
+
+		if err := sleepCtx(ctx, o.cfg.WarmupDelay); err != nil {
+			return nil, err
+		}
 
 		if err := r.Transition(rollout.StateAnalyzing); err != nil {
 			return nil, fmt.Errorf("orchestrator: %w", err)

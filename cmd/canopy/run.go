@@ -72,6 +72,7 @@ func runDeploy(ctx context.Context, cfg *config.Config, newVersion, priorVersion
 			MinSampleCount:    cfg.Analysis.MinSampleCount,
 		}),
 		Metrics:                 promMetrics,
+		WarmupDelay:             cfg.Analysis.WarmupDelay,
 		AnalysisInterval:        cfg.Analysis.Interval,
 		MaxInconclusiveAttempts: cfg.Analysis.MaxInconclusive,
 	})
