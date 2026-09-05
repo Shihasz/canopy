@@ -1,4 +1,4 @@
-.PHONY: build test lint vet fmt run clean tidy lab-keys lab-up lab-down lab-ps lab-logs
+.PHONY: build test lint vet fmt run clean tidy lab-keys lab-up lab-down lab-ps lab-logs test-integration
 
 BINARY := bin/canopy
 
@@ -38,6 +38,10 @@ lab-ps:
 
 lab-logs:
 	cd lab && docker compose logs -f
+
+test-integration:
+	@echo "Ensure the lab is running first: make lab-up"
+	go test ./test/integration/... -v -tags=integration -timeout=10m
 
 clean:
 	rm -rf bin/
