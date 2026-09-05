@@ -1,0 +1,57 @@
+services:
+  canary-vm:
+    build:
+      context: .
+      dockerfile: vm/Dockerfile
+      args:
+        TARGET_LABEL: canary
+        ENABLE_INITIAL_SERVICE: "false"
+    hostname: canary-vm
+    privileged: true
+    cgroup: host
+    tmpfs:
+      - /run
+      - /run/lock
+    ports:
+      - "2201:22"
+      - "8081:8080"
+    networks: [canopy-lab]
+
+  stable-vm:
+    build:
+      context: .
+      dockerfile: vm/Dockerfile
+      args:
+        TARGET_LABEL: stable
+        ENABLE_INITIAL_SERVICE: "true"
+    hostname: stable-vm
+    privileged: true
+    cgroup: host
+    tmpfs:
+      - /run
+      - /run/lock
+    ports:
+      - "2202:22"
+      - "8082:8080"
+    networks: [canopy-lab]
+
+  lb:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    hostname: lb
+    ports:
+      - "2203:22"
+      - "8080:80"
+    networks: [canopy-lab]
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    networks: [canopy-lab]
+
+networks:
+  canopy-lab:

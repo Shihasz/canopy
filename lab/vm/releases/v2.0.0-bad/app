@@ -1,0 +1,7 @@
+#!/bin/sh
+export TARGET=$(cat /etc/canopy/target-label)
+export VERSION=v2.0.0-bad
+export ERROR_RATE=0.5
+export LATENCY_MS=25
+export PORT=8080
+exec /opt/checkout-svc/bin/app

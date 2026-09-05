@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: checkout-svc
+    static_configs:
+      - targets: ["canary-vm:8080", "stable-vm:8080"]

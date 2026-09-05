@@ -1,0 +1,14 @@
+[Unit]
+Description=checkout-svc (initial)
+After=network.target
+
+[Service]
+Type=simple
+User=appuser
+WorkingDirectory=/opt/checkout-svc/releases/v1.9.0
+ExecStart=/opt/checkout-svc/releases/v1.9.0/app
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
