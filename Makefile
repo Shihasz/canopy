@@ -1,4 +1,4 @@
-.PHONY: build test lint vet fmt run clean tidy lab-keys lab-up lab-down lab-ps lab-logs test-integration
+.PHONY: build test lint vet fmt run clean tidy lab-keys lab-up lab-down lab-ps lab-logs test-integration docker-build docker-run
 
 BINARY := bin/canopy
 
@@ -42,6 +42,12 @@ lab-logs:
 test-integration:
 	@echo "Ensure the lab is running first: make lab-up"
 	go test ./test/integration/... -v -tags=integration -timeout=10m
+
+docker-build:
+	docker build --build-arg VERSION=$(shell git describe --tags --always --dirty 2>/dev/null || echo dev) -t canopy:local .
+
+docker-run:
+	docker run --rm canopy:local --version
 
 clean:
 	rm -rf bin/

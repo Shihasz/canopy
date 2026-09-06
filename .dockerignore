@@ -1,0 +1,9 @@
+.git/
+bin/
+lab/
+test/
+*.md
+.vscode/
+.gitignore
+Dockerfile
+.dockerignore
