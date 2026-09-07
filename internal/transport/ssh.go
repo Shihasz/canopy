@@ -101,7 +101,7 @@ func (e *SSHExecutor) Run(ctx context.Context, command string) (Result, error) {
 	if err != nil {
 		return Result{}, fmt.Errorf("transport: new session: %w", err)
 	}
-	defer session.Close()
+	defer func() { _ = session.Close() }()
 
 	var stdout, stderr bytes.Buffer
 	session.Stdout = &stdout

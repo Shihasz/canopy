@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Lint, build, and unit test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+          cache: true
+
+      - name: Verify formatting
+        run: |
+          fmt_output=$(gofmt -l .)
+          if [ -n "$fmt_output" ]; then
+            echo "The following files are not gofmt-formatted:"
+            echo "$fmt_output"
+            exit 1
+          fi
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@v7
+        with:
+          version: v2.13.2
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Build
+        run: go build ./...
+
+      - name: Unit tests
+        run: go test ./... -v -race
+
+  integration:
+    name: Integration tests (docker-compose lab)
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+          cache: true
+
+      - name: Generate lab SSH key
+        run: make lab-keys
+
+      - name: Build and start lab
+        run: make lab-up
+
+      - name: Wait for lab services to be ready
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8082/health > /dev/null && \
+               curl -sf http://localhost:9090/-/ready > /dev/null; then
+              echo "Lab is ready."
+              exit 0
+            fi
+            echo "Waiting for lab services... ($i/30)"
+            sleep 2
+          done
+          echo "Lab did not become ready in time."
+          docker compose -f lab/docker-compose.yml logs
+          exit 1
+
+      - name: Run integration tests
+        run: make test-integration
+
+      - name: Show lab logs on failure
+        if: failure()
+        run: docker compose -f lab/docker-compose.yml logs
+
+      - name: Tear down lab
+        if: always()
+        run: make lab-down

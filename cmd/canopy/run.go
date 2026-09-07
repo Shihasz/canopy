@@ -28,7 +28,7 @@ func runDeploy(ctx context.Context, cfg *config.Config, newVersion, priorVersion
 	if err != nil {
 		return fmt.Errorf("connect to canary host: %w", err)
 	}
-	defer canaryConn.Close()
+	defer func() { _ = canaryConn.Close() }()
 
 	lbConn, err := transport.NewSSHExecutor(transport.Config{
 		Host: cfg.LoadBalancer.Host, Port: cfg.SSH.Port, User: cfg.SSH.User, Signer: signer,
@@ -36,7 +36,7 @@ func runDeploy(ctx context.Context, cfg *config.Config, newVersion, priorVersion
 	if err != nil {
 		return fmt.Errorf("connect to load balancer host: %w", err)
 	}
-	defer lbConn.Close()
+	defer func() { _ = lbConn.Close() }()
 
 	canaryUnit := deploy.UnitConfig{
 		ServiceName:      cfg.ServiceName,

@@ -71,7 +71,7 @@ func handleTestConn(nConn net.Conn, config *ssh.ServerConfig) {
 	if err != nil {
 		return
 	}
-	defer sshConn.Close()
+	defer func() { _ = sshConn.Close() }()
 	go ssh.DiscardRequests(reqs)
 
 	for newChannel := range chans {
@@ -88,7 +88,7 @@ func handleTestConn(nConn net.Conn, config *ssh.ServerConfig) {
 }
 
 func handleTestSession(channel ssh.Channel, requests <-chan *ssh.Request) {
-	defer channel.Close()
+	defer func() { _ = channel.Close() }()
 	for req := range requests {
 		if req.Type != "exec" {
 			if req.WantReply {
@@ -109,13 +109,13 @@ func handleTestSession(channel ssh.Channel, requests <-chan *ssh.Request) {
 		exitCode := 0
 		switch payload.Command {
 		case "fail-command":
-			fmt.Fprint(channel.Stderr(), "simulated failure\n")
+			_, _ = fmt.Fprint(channel.Stderr(), "simulated failure\n")
 			exitCode = 1
 		case "sleep-command":
 			time.Sleep(2 * time.Second)
-			fmt.Fprint(channel, "slept\n")
+			_, _ = fmt.Fprint(channel, "slept\n")
 		default:
-			fmt.Fprintf(channel, "echo: %s\n", payload.Command)
+			_, _ = fmt.Fprintf(channel, "echo: %s\n", payload.Command)
 		}
 
 		_, _ = channel.SendRequest("exit-status", false, ssh.Marshal(struct{ ExitStatus uint32 }{uint32(exitCode)}))

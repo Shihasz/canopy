@@ -48,7 +48,7 @@ func TestSSHExecutor_Run_Success(t *testing.T) {
 	defer cleanup()
 
 	exec := dialTestServer(t, addr, signer)
-	defer exec.Close()
+	defer func() { _ = exec.Close() }()
 
 	result, err := exec.Run(context.Background(), "echo hello")
 	if err != nil {
@@ -67,7 +67,7 @@ func TestSSHExecutor_Run_NonZeroExit(t *testing.T) {
 	defer cleanup()
 
 	exec := dialTestServer(t, addr, signer)
-	defer exec.Close()
+	defer func() { _ = exec.Close() }()
 
 	result, err := exec.Run(context.Background(), "fail-command")
 	if err != nil {
@@ -86,7 +86,7 @@ func TestSSHExecutor_Run_ContextCancelled(t *testing.T) {
 	defer cleanup()
 
 	exec := dialTestServer(t, addr, signer)
-	defer exec.Close()
+	defer func() { _ = exec.Close() }()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 	defer cancel()
