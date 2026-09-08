@@ -30,3 +30,7 @@ crash.*.log
 
 # Local lab SSH keys (generated, never committed)
 lab/keys/
+
+# Real user tfvars — contains a real GCP project ID and possibly a
+# personal IP range; never commit your own copy.
+infra/gcp/terraform.tfvars
