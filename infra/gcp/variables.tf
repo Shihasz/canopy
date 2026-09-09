@@ -1,3 +1,8 @@
+# NOTE ON CI: this module's `terraform plan`/`apply` require real GCP
+# credentials (the google provider validates against the live API even
+# during planning), so CI only runs `fmt -check` and `validate` — both
+# fully offline. Running `plan`/`apply` for real is a deliberate, local,
+# credentialed action — see the main README for instructions.
 variable "project_id" {
   description = "GCP project ID to deploy into."
   type        = string
