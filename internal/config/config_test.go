@@ -107,3 +107,48 @@ func TestLoad_InvalidYAML(t *testing.T) {
 		t.Fatal("expected error for invalid YAML, got nil")
 	}
 }
+
+func TestLoad_LoadBalancerPortDefaultsToSSHPort(t *testing.T) {
+	path := writeTempConfig(t, validYAML) // validYAML never sets loadBalancer.port
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if cfg.LoadBalancer.Port != cfg.SSH.Port {
+		t.Errorf("LoadBalancer.Port = %d, want it to default to SSH.Port (%d)", cfg.LoadBalancer.Port, cfg.SSH.Port)
+	}
+}
+
+const yamlWithExplicitLBPort = `
+serviceName: checkout-svc
+ssh:
+  user: deploy
+  privateKey: /home/deploy/.ssh/id_ed25519
+canary:
+  host: canary.internal
+  appAddr: 10.0.0.6:8080
+  execStartFormat: /opt/checkout-svc/releases/%s/app
+stable:
+  host: stable.internal
+  appAddr: 10.0.0.5:8080
+loadBalancer:
+  host: lb.internal
+  port: 2203
+  configPath: /etc/nginx/conf.d/canopy-upstream.conf
+prometheus:
+  url: http://prometheus.internal:9090
+`
+
+func TestLoad_LoadBalancerPortExplicitOverride(t *testing.T) {
+	path := writeTempConfig(t, yamlWithExplicitLBPort)
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if cfg.LoadBalancer.Port != 2203 {
+		t.Errorf("LoadBalancer.Port = %d, want 2203 (explicit value should not be overridden by default)", cfg.LoadBalancer.Port)
+	}
+	if cfg.SSH.Port != 22 {
+		t.Errorf("SSH.Port = %d, want 22 (default), independent of LoadBalancer.Port", cfg.SSH.Port)
+	}
+}

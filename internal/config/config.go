@@ -34,6 +34,7 @@ type Config struct {
 
 	LoadBalancer struct {
 		Host         string `yaml:"host"`
+		Port         int    `yaml:"port"` // SSH port for the LB host; defaults to ssh.port if unset (0)
 		ConfigPath   string `yaml:"configPath"`
 		UpstreamName string `yaml:"upstreamName"`
 	} `yaml:"loadBalancer"`
@@ -111,6 +112,9 @@ func (c *Config) Validate() error {
 	}
 	if c.SSH.Port == 0 {
 		c.SSH.Port = 22
+	}
+	if c.LoadBalancer.Port == 0 {
+		c.LoadBalancer.Port = c.SSH.Port
 	}
 	if c.Analysis.Interval == 0 {
 		c.Analysis.Interval = 5 * time.Second
