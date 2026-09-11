@@ -1,0 +1,35 @@
+serviceName: checkout-svc
+
+ssh:
+  user: deploy
+  privateKey: lab/keys/deploy_key
+  port: 2201 # canary host's published SSH port
+
+canary:
+  host: localhost
+  appAddr: canary-vm:8080
+  workingDirectoryFormat: /opt/checkout-svc/releases/%s
+  execStartFormat: /opt/checkout-svc/releases/%s/app
+  user: appuser
+
+stable:
+  host: localhost
+  appAddr: stable-vm:8080
+
+loadBalancer:
+  host: localhost
+  port: 2203
+  configPath: /etc/nginx/conf.d/canopy-upstream.conf
+  upstreamName: checkout_svc
+
+prometheus:
+  url: http://localhost:9090
+
+analysis:
+  maxErrorRate: 0.10
+  maxErrorRateDelta: 0.10
+  maxP95LatencyMs: 1000
+  minSampleCount: 1
+  interval: 3s
+  warmupDelay: 8s
+  maxInconclusive: 5
