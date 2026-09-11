@@ -14,7 +14,7 @@ ssh:
 canary:
   host: canary.internal
   appAddr: 10.0.0.6:8080
-  workingDirectory: /opt/checkout-svc/releases/current
+  workingDirectoryFormat: /opt/checkout-svc/releases/%s
   execStartFormat: /opt/checkout-svc/releases/%s/app
   user: appuser
 stable:
@@ -127,6 +127,7 @@ ssh:
 canary:
   host: canary.internal
   appAddr: 10.0.0.6:8080
+  workingDirectoryFormat: /opt/checkout-svc/releases/%s
   execStartFormat: /opt/checkout-svc/releases/%s/app
 stable:
   host: stable.internal

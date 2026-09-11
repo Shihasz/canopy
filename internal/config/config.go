@@ -20,11 +20,11 @@ type Config struct {
 	} `yaml:"ssh"`
 
 	Canary struct {
-		Host             string `yaml:"host"`
-		AppAddr          string `yaml:"appAddr"` // host:port the app listens on
-		WorkingDirectory string `yaml:"workingDirectory"`
-		ExecStartFormat  string `yaml:"execStartFormat"` // e.g. "/opt/app/releases/%s/app", %s is replaced with the version
-		User             string `yaml:"user"`            // unix user the systemd service runs as
+		Host                   string `yaml:"host"`
+		AppAddr                string `yaml:"appAddr"`                // host:port the app listens on, used in the nginx upstream
+		WorkingDirectoryFormat string `yaml:"workingDirectoryFormat"` // e.g. "/opt/app/releases/%s", %s is replaced with the version
+		ExecStartFormat        string `yaml:"execStartFormat"`        // e.g. "/opt/app/releases/%s/app", %s is replaced with the version
+		User                   string `yaml:"user"`                   // unix user the systemd service runs as
 	} `yaml:"canary"`
 
 	Stable struct {
@@ -91,6 +91,9 @@ func (c *Config) Validate() error {
 	}
 	if c.Canary.ExecStartFormat == "" {
 		missing = append(missing, "canary.execStartFormat")
+	}
+	if c.Canary.WorkingDirectoryFormat == "" {
+		missing = append(missing, "canary.workingDirectoryFormat")
 	}
 	if c.Stable.Host == "" {
 		missing = append(missing, "stable.host")

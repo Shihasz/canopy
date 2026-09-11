@@ -42,12 +42,13 @@ func runDeploy(ctx context.Context, cfg *config.Config, newVersion, priorVersion
 		ServiceName:      cfg.ServiceName,
 		Description:      fmt.Sprintf("%s (managed by canopy)", cfg.ServiceName),
 		ExecStart:        fmt.Sprintf(cfg.Canary.ExecStartFormat, newVersion),
-		WorkingDirectory: cfg.Canary.WorkingDirectory,
+		WorkingDirectory: fmt.Sprintf(cfg.Canary.WorkingDirectoryFormat, newVersion),
 		User:             cfg.Canary.User,
 		Restart:          "on-failure",
 	}
 	priorUnit := canaryUnit
 	priorUnit.ExecStart = fmt.Sprintf(cfg.Canary.ExecStartFormat, priorVersion)
+	priorUnit.WorkingDirectory = fmt.Sprintf(cfg.Canary.WorkingDirectoryFormat, priorVersion)
 
 	promMetrics, err := analysis.NewPrometheusProvider(cfg.Prometheus.URL)
 	if err != nil {
@@ -86,6 +87,10 @@ func runDeploy(ctx context.Context, cfg *config.Config, newVersion, priorVersion
 	}
 
 	fmt.Printf("Rollout finished: %s\n", result.FinalState)
+	fmt.Printf("  stable:  errorRate=%.4f p95=%.1fms samples=%d\n",
+		result.LastReport.Stable.ErrorRate, result.LastReport.Stable.P95LatencyMs, result.LastReport.Stable.SampleCount)
+	fmt.Printf("  canary:  errorRate=%.4f p95=%.1fms samples=%d\n",
+		result.LastReport.Canary.ErrorRate, result.LastReport.Canary.P95LatencyMs, result.LastReport.Canary.SampleCount)
 	for _, reason := range result.LastReport.Reasons {
 		fmt.Println(" -", reason)
 	}
